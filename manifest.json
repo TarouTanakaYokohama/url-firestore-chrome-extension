@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "url-set-firestore",
+  "version": "1.0",
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "permissions": [
+    "clipboardWrite",
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_icon": "icons/C.png",
+    "default_title": "Copy URL"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"]
+    }
+  ]
+}
