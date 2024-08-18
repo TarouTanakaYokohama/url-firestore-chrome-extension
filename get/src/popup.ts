@@ -3,19 +3,24 @@ import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 // Firestore からドキュメントを取得する関数
 const getDocumentsFromFirestore = async (): Promise<{ [key: string]: string[] }> => {
-    const urlsCollectionRef = collection(db, "urls");
-    const querySnapshot = await getDocs(urlsCollectionRef);
-    const documents: { [key: string]: string[] } = {};
+    try {
+        const urlsCollectionRef = collection(db, "urls");
+        const querySnapshot = await getDocs(urlsCollectionRef);
+        const documents: { [key: string]: string[] } = {};
 
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-        if (Array.isArray(data.urls)) {
-            documents[doc.id] = data.urls;
-        }
-    });
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if (Array.isArray(data.urls)) {
+                documents[doc.id] = data.urls;
+            }
+        });
 
-    console.log('Documents from Firestore:', documents);
-    return documents;
+        console.log('Documents from Firestore:', documents);
+        return documents;
+    } catch (error) {
+        console.error('Error fetching documents from Firestore:', error);
+        return {};
+    }
 };
 
 // Firestore からドキュメントを削除する関数
@@ -31,66 +36,74 @@ const deleteDocumentFromFirestore = async (documentId: string) => {
 
 // URL を新しいタブで開く関数
 const openUrlsInNewTabs = (urls: string[]) => {
-    urls.forEach(url => {
-        chrome.tabs.create({ url });
-    });
+    urls.forEach(url => chrome.tabs.create({ url }));
+};
+
+// 空のリストメッセージを表示するヘルパー関数
+const displayNoItemsMessage = (parentElement: HTMLElement) => {
+    const noItemsMessage = document.createElement('li');
+    noItemsMessage.textContent = 'アイテムはありません';
+    noItemsMessage.className = 'no-item';
+    parentElement.appendChild(noItemsMessage);
+};
+
+// リストアイテムを作成するヘルパー関数
+const createListItem = (
+    documentId: string,
+    urls: string[],
+    urlListElement: HTMLElement
+) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'url-item';
+
+    const urlCount = document.createElement('span');
+    urlCount.className = 'url-count';
+    urlCount.textContent = `${urls.length}`;
+
+    const urlContent = document.createElement('div');
+    urlContent.className = 'url-content';
+    urlContent.textContent = documentId;
+
+    listItem.onclick = () => openUrlsInNewTabs(urls);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.textContent = '🗑️';
+    deleteButton.onclick = async (event) => {
+        event.stopPropagation();
+        await deleteDocumentFromFirestore(documentId);
+        listItem.remove();
+
+        if (!urlListElement.hasChildNodes()) {
+            displayNoItemsMessage(urlListElement);
+        }
+    };
+
+    listItem.appendChild(urlCount);
+    listItem.appendChild(urlContent);
+    listItem.appendChild(deleteButton);
+
+    return listItem;
 };
 
 // ポップアップの URL リストにドキュメントを追加する関数
 const populateUrlList = (documents: { [key: string]: string[] }) => {
     const urlListElement = document.getElementById('url-list');
-    if (urlListElement) {
-        if (Object.keys(documents).length === 0) {
-            const noItemsMessage = document.createElement('li');
-            noItemsMessage.textContent = 'アイテムがありません';
-            noItemsMessage.style.textAlign = 'center';
-            noItemsMessage.style.padding = '10px';
-            urlListElement.appendChild(noItemsMessage);
-            return;
-        }
 
-        Object.entries(documents).forEach(([documentId, urls]: [string, string[]]) => {
-            const listItem = document.createElement('li');
-            listItem.className = 'url-item';
-
-            // 配列数の表示
-            const urlCount = document.createElement('span');
-            urlCount.className = 'url-count';
-            urlCount.textContent = `${urls.length}`;
-
-            const urlContent = document.createElement('div');
-            urlContent.className = 'url-content';
-            urlContent.textContent = documentId;
-
-            // クリックでURLを開く
-            listItem.onclick = () => openUrlsInNewTabs(urls);
-
-            // 削除ボタン
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'delete-button';
-            deleteButton.textContent = '🗑️';
-            deleteButton.onclick = async (event) => {
-                event.stopPropagation();
-                await deleteDocumentFromFirestore(documentId);
-                listItem.remove();
-
-                if (!urlListElement.hasChildNodes()) {
-                    const noItemsMessage = document.createElement('li');
-                    noItemsMessage.textContent = 'アイテムがありません';
-                    noItemsMessage.style.textAlign = 'center';
-                    noItemsMessage.style.padding = '10px';
-                    urlListElement.appendChild(noItemsMessage);
-                }
-            };
-
-            listItem.appendChild(urlCount);
-            listItem.appendChild(urlContent);
-            listItem.appendChild(deleteButton);
-            urlListElement.appendChild(listItem);
-        });
-    } else {
+    if (!urlListElement) {
         console.error('URL list element not found');
+        return;
     }
+
+    if (Object.keys(documents).length === 0) {
+        displayNoItemsMessage(urlListElement);
+        return;
+    }
+
+    Object.entries(documents).forEach(([documentId, urls]) => {
+        const listItem = createListItem(documentId, urls, urlListElement);
+        urlListElement.appendChild(listItem);
+    });
 };
 
 // ポップアップがロードされたときに呼び出される関数
