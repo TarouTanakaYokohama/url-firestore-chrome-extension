@@ -8,30 +8,37 @@
         }
         #url-list {
             padding: 0;
-            list-style-type: none;
+            list-style: none;
         }
         .url-item {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 8px;
+            align-items: center;
+            padding: 10px;
             border-bottom: 1px solid #ddd;
             cursor: pointer;
+            font-size: 24px;
         }
         .url-item:hover {
             background-color: #f0f0f0;
         }
-        .delete-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        .delete-button:hover {
-            text-decoration: underline;
-        }
         .url-content {
             flex-grow: 1;
+            padding-left: 10px;
+        }
+        .delete-button {
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .delete-button:hover {
+            background-color: grey;
+        }
+        .url-count {
+            color: #007bff;
+            font-weight: bold;
         }
     </style>
 </head>

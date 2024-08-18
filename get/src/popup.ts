@@ -14,7 +14,7 @@ const getDocumentsFromFirestore = async (): Promise<{ [key: string]: string[] }>
         }
     });
 
-    console.log('Documents from Firestore:', documents); // デバッグ用
+    console.log('Documents from Firestore:', documents);
     return documents;
 };
 
@@ -40,7 +40,6 @@ const openUrlsInNewTabs = (urls: string[]) => {
 const populateUrlList = (documents: { [key: string]: string[] }) => {
     const urlListElement = document.getElementById('url-list');
     if (urlListElement) {
-        // ドキュメントが空の場合、「アイテムがありません」と表示
         if (Object.keys(documents).length === 0) {
             const noItemsMessage = document.createElement('li');
             noItemsMessage.textContent = 'アイテムがありません';
@@ -50,10 +49,14 @@ const populateUrlList = (documents: { [key: string]: string[] }) => {
             return;
         }
 
-        // ドキュメントがある場合の処理
         Object.entries(documents).forEach(([documentId, urls]: [string, string[]]) => {
             const listItem = document.createElement('li');
             listItem.className = 'url-item';
+
+            // 配列数の表示
+            const urlCount = document.createElement('span');
+            urlCount.className = 'url-count';
+            urlCount.textContent = `${urls.length}`;
 
             const urlContent = document.createElement('div');
             urlContent.className = 'url-content';
@@ -67,11 +70,10 @@ const populateUrlList = (documents: { [key: string]: string[] }) => {
             deleteButton.className = 'delete-button';
             deleteButton.textContent = '🗑️';
             deleteButton.onclick = async (event) => {
-                event.stopPropagation(); // 削除ボタンをクリックしてもURLが開かないようにする
+                event.stopPropagation();
                 await deleteDocumentFromFirestore(documentId);
-                listItem.remove(); // リストから削除
+                listItem.remove();
 
-                // すべてのアイテムが削除された場合、「アイテムがありません」を表示
                 if (!urlListElement.hasChildNodes()) {
                     const noItemsMessage = document.createElement('li');
                     noItemsMessage.textContent = 'アイテムがありません';
@@ -81,6 +83,7 @@ const populateUrlList = (documents: { [key: string]: string[] }) => {
                 }
             };
 
+            listItem.appendChild(urlCount);
             listItem.appendChild(urlContent);
             listItem.appendChild(deleteButton);
             urlListElement.appendChild(listItem);
