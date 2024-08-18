@@ -1,4 +1,4 @@
-# url-set-firestore
+# url-get-firestore
 
 使用方法：
 1. .envに追記
