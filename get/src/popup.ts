@@ -40,6 +40,17 @@ const openUrlsInNewTabs = (urls: string[]) => {
 const populateUrlList = (documents: { [key: string]: string[] }) => {
     const urlListElement = document.getElementById('url-list');
     if (urlListElement) {
+        // ドキュメントが空の場合、「アイテムがありません」と表示
+        if (Object.keys(documents).length === 0) {
+            const noItemsMessage = document.createElement('li');
+            noItemsMessage.textContent = 'アイテムがありません';
+            noItemsMessage.style.textAlign = 'center';
+            noItemsMessage.style.padding = '10px';
+            urlListElement.appendChild(noItemsMessage);
+            return;
+        }
+
+        // ドキュメントがある場合の処理
         Object.entries(documents).forEach(([documentId, urls]: [string, string[]]) => {
             const listItem = document.createElement('li');
             listItem.className = 'url-item';
@@ -59,6 +70,15 @@ const populateUrlList = (documents: { [key: string]: string[] }) => {
                 event.stopPropagation(); // 削除ボタンをクリックしてもURLが開かないようにする
                 await deleteDocumentFromFirestore(documentId);
                 listItem.remove(); // リストから削除
+
+                // すべてのアイテムが削除された場合、「アイテムがありません」を表示
+                if (!urlListElement.hasChildNodes()) {
+                    const noItemsMessage = document.createElement('li');
+                    noItemsMessage.textContent = 'アイテムがありません';
+                    noItemsMessage.style.textAlign = 'center';
+                    noItemsMessage.style.padding = '10px';
+                    urlListElement.appendChild(noItemsMessage);
+                }
             };
 
             listItem.appendChild(urlContent);
