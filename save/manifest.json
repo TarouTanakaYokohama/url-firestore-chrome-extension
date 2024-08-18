@@ -13,7 +13,7 @@
     "scripting"
   ],
   "action": {
-    "default_icon": "icons/C.png",
+    "default_icon": "icons/S.png",
     "default_title": "Copy URL"
   },
   "content_scripts": [
