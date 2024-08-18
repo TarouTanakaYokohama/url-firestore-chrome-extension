@@ -35,7 +35,7 @@ const saveAllUrlsFromDomainAndCloseTabs = async (domain: string) => {
     const urlsToSave: string[] = [];
     chrome.tabs.query({}, async (tabs) => {
         for (const tab of tabs) {
-            if (tab.url && getDomainFromUrl(tab.url) === domain) {
+            if (tab.url && !tab.url.startsWith('chrome://') && getDomainFromUrl(tab.url) === domain) {
                 urlsToSave.push(tab.url);
                 chrome.tabs.remove(tab.id!);  // URLを収集した後にタブを閉じる
             }
@@ -50,7 +50,7 @@ const saveAllUrlsFromDomainAndCloseTabs = async (domain: string) => {
 
 // 拡張機能のボタンクリックのリスナー
 chrome.action.onClicked.addListener((tab) => {
-    if (tab && tab.url) {
+    if (tab && tab.url && !tab.url.startsWith('chrome://')) {
         const domain = getDomainFromUrl(tab.url);
         saveAllUrlsFromDomainAndCloseTabs(domain);
     }
