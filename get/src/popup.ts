@@ -35,8 +35,11 @@ const deleteDocumentFromFirestore = async (documentId: string) => {
 };
 
 // URL を新しいタブで開く関数
-const openUrlsInNewTabs = (urls: string[]) => {
-    urls.forEach(url => chrome.tabs.create({ url }));
+const openUrlsInNewTabs = async (urls: string[], documentId: string) => {
+    await deleteDocumentFromFirestore(documentId);
+
+    // 全てのURLが開かれるのを待つ
+    await Promise.all(urls.map(url => chrome.tabs.create({ url })));
 };
 
 // 空のリストメッセージを表示するヘルパー関数
@@ -64,11 +67,10 @@ const createListItem = (
     urlContent.className = 'url-content';
     urlContent.textContent = documentId;
 
-    listItem.onclick = () => openUrlsInNewTabs(urls);
+    listItem.onclick = () => openUrlsInNewTabs(urls, documentId);
 
     const deleteButton = document.createElement('button');
-    deleteButton.className = 'delete-button';
-    deleteButton.textContent = '🗑️';
+    deleteButton.className = 'trash';
     deleteButton.onclick = async (event) => {
         event.stopPropagation();
         await deleteDocumentFromFirestore(documentId);
